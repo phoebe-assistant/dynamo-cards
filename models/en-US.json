@@ -68,6 +68,19 @@
                 {
                     "name": "AMAZON.NavigateHomeIntent",
                     "samples": []
+                },
+                {
+                    "name": "TestMeIntent",
+                    "slots": [],
+                    "samples": [
+                        "review flashcards",
+                        "review my cards",
+                        "practice",
+                        "practice my flashcards",
+                        "I want to practice",
+                        "test me",
+                        "study cards"
+                    ]
                 }
             ],
             "types": []
@@ -115,6 +128,12 @@
                             }
                         }
                     ]
+                },
+                {
+                    "name": "TestMeIntent",
+                    "confirmationRequired": false,
+                    "prompts": {},
+                    "slots": []
                 }
             ],
             "delegationStrategy": "SKILL_RESPONSE"
