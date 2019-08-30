@@ -1,10 +1,12 @@
+
 /* eslint-disable  func-names */
 /* eslint-disable  no-console */
 
 const Alexa = require('ask-sdk');
 const dbHelper = require('./helpers/dbHelper');
 const GENERAL_REPROMPT = "What would you like to do?";
-const dynamoDBTableName = "flashytable"; 
+const dynamoDBTableName = "FlashiestCard"; //use your db name here
+
 //change to your Dynamodb table name; have `userId` as a partrition key, and `front` as a sort key for this to work. 
 // also create an item in Dynamodb as `back` --- append it after front.
 
@@ -13,7 +15,7 @@ const LaunchRequestHandler = {
     return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
   },
   handle(handlerInput) {
-    const speechText = 'Welcome to: enter skill name here beaches. You can give the following commands: add, followed by a topic to create a card. Get cards, to see existing cards. Remove card, to get rid of a card. Or study cards, to randomly generate one of your existing cards. Which will it be?';
+    const speechText = 'Welcome to dynamo cards. You can give the following commands: add, followed by a topic to create a card. Get cards, to see existing cards. Remove card, to get rid of a card. Or study cards, to randomly generate one of your existing cards. Which will it be?';
     const repromptText = 'What would you like to do? You can say HELP to get available options';
 
     return handlerInput.responseBuilder
@@ -78,14 +80,15 @@ const GetCardsIntentHandler = {
     const userID = handlerInput.requestEnvelope.context.System.user.userId; 
     return dbHelper.getCards(userID)
       .then((data) => {
-        var speechText = `You have a total of ${data.length} cards. The cards are: `
-        if(data.length == 1) {
-          speechText = `You only have ${data.length} card, which is `
+        let speechText = 'Your cards are ';
+        // data.<your own table properties here>
+        if(data.length === 1) {
+          speechText = `You only have ${data.length} card, which is ${data[0].cardTitle}`
         }
-        if (data.length == 0) {
+        else if (data.length === 0) {
           speechText = "You do not have any cards yet, add a card by saying add, followed by a topic or question."
         } else {
-          speechText += data.map(e => e.front).join(", ")
+          speechText += data.map(e => e.cardTitle).join(", ")
         }
         return responseBuilder
           .speak(speechText)
@@ -100,6 +103,41 @@ const GetCardsIntentHandler = {
       })
   }
 }
+
+const TestMeIntentHandler = {
+  canHandle(handlerInput) {
+    return handlerInput.requestEnvelope.request.type === 'IntentRequest'
+      && handlerInput.requestEnvelope.request.intent.name === 'TestMeIntent';
+  },
+  async handle(handlerInput) {
+    let testAnswer;
+    const {responseBuilder } = handlerInput;
+    const userID = handlerInput.requestEnvelope.context.System.user.userId; 
+    return dbHelper.getCards(userID)
+      .then((data) => {
+        let arr = data.map(e => e);
+        let randomCard = Math.floor(Math.random()*arr.length);
+
+        // make sure data is corresponding to your own table properties 
+        // data[randomCard].<your property here>
+
+        let speechText = `your card is ${data[randomCard].cardTitle}`;
+        testAnswer = `The answer was ${data[randomCard].cardContent}`;
+
+        return responseBuilder
+          .speak(speechText)
+          .reprompt(testAnswer)
+          .getResponse();
+      })
+      .catch((err) => {
+        const speechText = "we cannot get your card right now. Try again!"
+        return responseBuilder
+          .speak(speechText)
+          .getResponse();
+      })
+  }
+}
+
 
 const InProgressRemoveCardIntentHandler = {
   canHandle(handlerInput) {
@@ -137,7 +175,7 @@ const RemoveCardIntentHandler = {
       })
       .catch((err) => {
         console.log("Error occured while removing card", err);
-        const speechText = `You do not have that card, you can add it by saying add`
+        const speechText = `You do not have a card called ${card}, you can add it by saying add`
         return responseBuilder
           .speak(speechText)
           .reprompt(GENERAL_REPROMPT)
@@ -209,6 +247,7 @@ exports.handler = skillBuilder
     InProgressAddCardIntentHandler,
     AddCardIntentHandler,
     GetCardsIntentHandler,
+    TestMeIntentHandler,
     InProgressRemoveCardIntentHandler,
     RemoveCardIntentHandler,
     HelpIntentHandler,
@@ -219,4 +258,5 @@ exports.handler = skillBuilder
   .withTableName(dynamoDBTableName)
   .withAutoCreateTable(true)
   .lambda();
+
 

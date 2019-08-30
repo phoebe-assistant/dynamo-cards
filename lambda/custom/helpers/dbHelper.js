@@ -1,6 +1,7 @@
+
 var AWS = require("aws-sdk");
 AWS.config.update({region: "us-east-1"});
-const tableName = "flashytable"; //change to your Dynamodb table name
+const tableName = "FlashiestCard"; //change to your Dynamodb table name
 
 var dbHelper = function () { };
 var docClient = new AWS.DynamoDB.DocumentClient();
@@ -9,9 +10,10 @@ dbHelper.prototype.addCard = (answer, card, userID) => {
     return new Promise((resolve, reject) => {
         const params = {
             TableName: tableName,
+            // adjust these to your db table
             Item: {
-              'back' : answer,
-              'front' : card,
+              'cardContent' : answer,
+              'cardTitle' : card,
               'userId': userID
             }
         };
@@ -54,8 +56,9 @@ dbHelper.prototype.removeCard = (card, userID) => {
     return new Promise((resolve, reject) => {
         const params = {
             TableName: tableName,
+            // adjust for your dbtable
             Key: {
-                "front": card,
+                "cardTitle": card,
                 "userId": userID
             }
         }
