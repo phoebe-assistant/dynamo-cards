@@ -51,10 +51,8 @@ const AddCardIntentHandler = {
     const answer = slots.answer.value;
     return dbHelper.addCard(answer, card, userID)
       .then((data) => {
-        let speechText = `You have added ${card} as a card. You can say add to add another one or remove to remove a card`;
-        if(card == card) { 
-          speechText = `You already have ${card} as a card.`
-      }
+        const speechText = `You have added ${card} as a card. You can say add to add another one or remove to remove a card`;
+
         return responseBuilder
           .speak(speechText)
           .reprompt(GENERAL_REPROMPT)
