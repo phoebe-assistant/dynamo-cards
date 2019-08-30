@@ -4,13 +4,13 @@
 const Alexa = require('ask-sdk');
 const dbHelper = require('./helpers/dbHelper');
 const GENERAL_REPROMPT = "What would you like to do?";
-const dynamoDBTableName = "dynamodb-starter";
+const dynamoDBTableName = "cool-actor-database";
 const LaunchRequestHandler = {
   canHandle(handlerInput) {
     return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
   },
   handle(handlerInput) {
-    const speechText = 'Hello there. What is your favourite movie? You can say add moviename to add your favourite movie or say list my movies to get your favourite movies.';
+    const speechText = 'Hello there. What is your favourite Actor? You can say add Actorname to add your favourite Actor or say list my Actors to get your favourite Actors.';
     const repromptText = 'What would you like to do? You can say HELP to get available options';
 
     return handlerInput.responseBuilder
@@ -20,11 +20,11 @@ const LaunchRequestHandler = {
   },
 };
 
-const InProgressAddMovieIntentHandler = {
+const InProgressAddActorIntentHandler = {
   canHandle(handlerInput) {
     const request = handlerInput.requestEnvelope.request;
     return request.type === 'IntentRequest' &&
-      request.intent.name === 'AddMovieIntent' &&
+      request.intent.name === 'AddActorIntent' &&
       request.dialogState !== 'COMPLETED';
   },
   handle(handlerInput) {
@@ -35,27 +35,28 @@ const InProgressAddMovieIntentHandler = {
   }
 }
 
-const AddMovieIntentHandler = {
+const AddActorIntentHandler = {
   canHandle(handlerInput) {
     return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === 'AddMovieIntent';
+      && handlerInput.requestEnvelope.request.intent.name === 'AddActorIntent';
   },
   async handle(handlerInput) {
     const {responseBuilder } = handlerInput;
     const userID = handlerInput.requestEnvelope.context.System.user.userId; 
     const slots = handlerInput.requestEnvelope.request.intent.slots;
+    const actorName = slots.ActorName.value;
     const movieName = slots.MovieName.value;
-    return dbHelper.addMovie(movieName, userID)
+    return dbHelper.addActor(movieName, actorName, userID)
       .then((data) => {
-        const speechText = `You have added movie ${movieName}. You can say add to add another one or remove to remove movie`;
+        const speechText = `You have added Actor ${actorName}. You can say add to add another one or remove to remove Actor`;
         return responseBuilder
           .speak(speechText)
           .reprompt(GENERAL_REPROMPT)
           .getResponse();
       })
       .catch((err) => {
-        console.log("Error occured while saving movie", err);
-        const speechText = "we cannot save your movie right now. Try again!"
+        console.log("Error occured while saving Actor", err);
+        const speechText = "we cannot save your Actor right now. Try again!"
         return responseBuilder
           .speak(speechText)
           .getResponse();
@@ -63,21 +64,22 @@ const AddMovieIntentHandler = {
   },
 };
 
-const GetMoviesIntentHandler = {
+const GetActorsIntentHandler = {
   canHandle(handlerInput) {
     return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === 'GetMoviesIntent';
+      && handlerInput.requestEnvelope.request.intent.name === 'GetActorsIntent';
   },
   async handle(handlerInput) {
     const {responseBuilder } = handlerInput;
     const userID = handlerInput.requestEnvelope.context.System.user.userId; 
-    return dbHelper.getMovies(userID)
+    return dbHelper.getActors(userID)
       .then((data) => {
-        var speechText = "Your movies are "
+        var speechText = "Your Actors are "
         if (data.length == 0) {
-          speechText = "You do not have any favourite movie yet, add movie by saving add moviename "
+          speechText = "You do not have any favourite Actor yet, add Actor by saving add Actorname "
         } else {
-          speechText += data.map(e => e.movieTitle).join(", ")
+          console.log('I hate you so much rn', data);
+          speechText += data.map(e => e.actorName).join(", ")
         }
         return responseBuilder
           .speak(speechText)
@@ -85,7 +87,7 @@ const GetMoviesIntentHandler = {
           .getResponse();
       })
       .catch((err) => {
-        const speechText = "we cannot get your movie right now. Try again!"
+        const speechText = "we cannot get your Actor right now. Try again!"
         return responseBuilder
           .speak(speechText)
           .getResponse();
@@ -93,11 +95,11 @@ const GetMoviesIntentHandler = {
   }
 }
 
-const InProgressRemoveMovieIntentHandler = {
+const InProgressRemoveActorIntentHandler = {
   canHandle(handlerInput) {
     const request = handlerInput.requestEnvelope.request;
     return request.type === 'IntentRequest' &&
-      request.intent.name === 'RemoveMovieIntent' &&
+      request.intent.name === 'RemoveActorIntent' &&
       request.dialogState !== 'COMPLETED';
   },
   handle(handlerInput) {
@@ -108,26 +110,28 @@ const InProgressRemoveMovieIntentHandler = {
   }
 }
 
-const RemoveMovieIntentHandler = {
+const RemoveActorIntentHandler = {
   canHandle(handlerInput) {
     return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === 'RemoveMovieIntent';
+      && handlerInput.requestEnvelope.request.intent.name === 'RemoveActorIntent';
   }, 
   handle(handlerInput) {
     const {responseBuilder } = handlerInput;
     const userID = handlerInput.requestEnvelope.context.System.user.userId; 
     const slots = handlerInput.requestEnvelope.request.intent.slots;
-    const movieName = slots.MovieName.value;
-    return dbHelper.removeMovie(movieName, userID)
+    const actorName = slots.ActorName.value;
+    console.log('booooooooooooork', actorName);
+    return dbHelper.removeActor(actorName, userID)
       .then((data) => {
-        const speechText = `You have removed movie with name ${movieName}, you can add another one by saying add`
+        const speechText = `You have removed Actor with name ${actorName}, you can add another one by saying add`
         return responseBuilder
           .speak(speechText)
           .reprompt(GENERAL_REPROMPT)
           .getResponse();
       })
       .catch((err) => {
-        const speechText = `You do not have movie with name ${movieName}, you can add it by saying add`
+        console.log("Error occured while removing Actor", err);
+        const speechText = `You do not have Actor with name ${actorName}, you can add it by saying add`
         return responseBuilder
           .speak(speechText)
           .reprompt(GENERAL_REPROMPT)
@@ -196,11 +200,11 @@ const skillBuilder = Alexa.SkillBuilders.standard();
 exports.handler = skillBuilder
   .addRequestHandlers(
     LaunchRequestHandler,
-    InProgressAddMovieIntentHandler,
-    AddMovieIntentHandler,
-    GetMoviesIntentHandler,
-    InProgressRemoveMovieIntentHandler,
-    RemoveMovieIntentHandler,
+    InProgressAddActorIntentHandler,
+    AddActorIntentHandler,
+    GetActorsIntentHandler,
+    InProgressRemoveActorIntentHandler,
+    RemoveActorIntentHandler,
     HelpIntentHandler,
     CancelAndStopIntentHandler,
     SessionEndedRequestHandler
@@ -209,3 +213,4 @@ exports.handler = skillBuilder
   .withTableName(dynamoDBTableName)
   .withAutoCreateTable(true)
   .lambda();
+
