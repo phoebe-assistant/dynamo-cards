@@ -1,7 +1,7 @@
 {
     "interactionModel": {
         "languageModel": {
-            "invocationName": "dynamodb starter",
+            "invocationName": "cool actor database",
             "intents": [
                 {
                     "name": "AMAZON.CancelIntent",
@@ -16,43 +16,54 @@
                     "samples": []
                 },
                 {
-                    "name": "AddMovieIntent",
+                    "name": "AddActorIntent",
                     "slots": [
                         {
+                            "name": "ActorName",
+                            "type": "AMAZON.SearchQuery",
+                            "samples": [
+                                "{ActorName}"
+                            ]
+                        },
+                        {
                             "name": "MovieName",
-                            "type": "AMAZON.Movie",
+                            "type": "AMAZON.SearchQuery",
                             "samples": [
                                 "{MovieName}"
                             ]
                         }
                     ],
                     "samples": [
-                        "add {MovieName}",
+                        "add {ActorName}",
                         "add"
                     ]
                 },
                 {
-                    "name": "GetMoviesIntent",
+                    "name": "GetActorsIntent",
                     "slots": [],
                     "samples": [
-                        "get my movies"
+                        "get my actors"
                     ]
                 },
                 {
-                    "name": "RemoveMovieIntent",
+                    "name": "RemoveActorIntent",
                     "slots": [
                         {
-                            "name": "MovieName",
-                            "type": "AMAZON.Movie",
+                            "name": "ActorName",
+                            "type": "AMAZON.SearchQuery",
                             "samples": [
-                                "{MovieName}"
+                                "remove {ActorName}"
                             ]
                         }
                     ],
                     "samples": [
-                        "remove {MovieName}",
+                        "remove {ActorName}",
                         "remove"
                     ]
+                },
+                {
+                    "name": "AMAZON.NavigateHomeIntent",
+                    "samples": []
                 }
             ],
             "types": []
@@ -60,38 +71,49 @@
         "dialog": {
             "intents": [
                 {
-                    "name": "AddMovieIntent",
+                    "name": "AddActorIntent",
                     "confirmationRequired": false,
                     "prompts": {},
                     "slots": [
                         {
-                            "name": "MovieName",
-                            "type": "AMAZON.Movie",
+                            "name": "ActorName",
+                            "type": "AMAZON.SearchQuery",
                             "confirmationRequired": false,
                             "elicitationRequired": true,
                             "prompts": {
                                 "elicitation": "Elicit.Slot.932310416052.1004645578092"
                             }
+                        },
+                        {
+                            "name": "MovieName",
+                            "type": "AMAZON.SearchQuery",
+                            "confirmationRequired": false,
+                            "elicitationRequired": true,
+                            "prompts": {
+                                "elicitation": "Elicit.Slot.405281153965.650419365854"
+                            }
                         }
                     ]
                 },
                 {
-                    "name": "RemoveMovieIntent",
+                    "name": "RemoveActorIntent",
                     "confirmationRequired": false,
                     "prompts": {},
                     "slots": [
                         {
-                            "name": "MovieName",
-                            "type": "AMAZON.Movie",
-                            "confirmationRequired": false,
+                            "name": "ActorName",
+                            "type": "AMAZON.SearchQuery",
+                            "confirmationRequired": true,
                             "elicitationRequired": true,
                             "prompts": {
+                                "confirmation": "Confirm.Slot.1103870370553.1320796174007",
                                 "elicitation": "Elicit.Slot.1034415917954.788060345760"
                             }
                         }
                     ]
                 }
-            ]
+            ],
+            "delegationStrategy": "SKILL_RESPONSE"
         },
         "prompts": [
             {
@@ -99,7 +121,7 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "Which movie would you like to add "
+                        "value": "Which actor would you like to add "
                     }
                 ]
             },
@@ -108,7 +130,25 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "Which movie would you like to remove "
+                        "value": "Which actor would you like to remove "
+                    }
+                ]
+            },
+            {
+                "id": "Elicit.Slot.405281153965.650419365854",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "what movie has {ActorName} been in"
+                    }
+                ]
+            },
+            {
+                "id": "Confirm.Slot.1103870370553.1320796174007",
+                "variations": [
+                    {
+                        "type": "PlainText",
+                        "value": "you're sure now"
                     }
                 ]
             }
