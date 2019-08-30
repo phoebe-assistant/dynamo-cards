@@ -4,13 +4,16 @@
 const Alexa = require('ask-sdk');
 const dbHelper = require('./helpers/dbHelper');
 const GENERAL_REPROMPT = "What would you like to do?";
-const dynamoDBTableName = "cool-actor-database";
+const dynamoDBTableName = "flashytable"; 
+//change to your Dynamodb table name; have `userId` as a partrition key, and `front` as a sort key for this to work. 
+// also create an item in Dynamodb as `back` --- append it after front.
+
 const LaunchRequestHandler = {
   canHandle(handlerInput) {
     return handlerInput.requestEnvelope.request.type === 'LaunchRequest';
   },
   handle(handlerInput) {
-    const speechText = 'Hello there. What is your favourite Actor? You can say add Actorname to add your favourite Actor or say list my Actors to get your favourite Actors.';
+    const speechText = 'Welcome to: enter skill name here beaches. You can give the following commands: add, followed by a topic to create a card. Get cards, to see existing cards. Remove card, to get rid of a card. Or study cards, to randomly generate one of your existing cards. Which will it be?';
     const repromptText = 'What would you like to do? You can say HELP to get available options';
 
     return handlerInput.responseBuilder
@@ -20,11 +23,11 @@ const LaunchRequestHandler = {
   },
 };
 
-const InProgressAddActorIntentHandler = {
+const InProgressAddCardIntentHandler = {
   canHandle(handlerInput) {
     const request = handlerInput.requestEnvelope.request;
     return request.type === 'IntentRequest' &&
-      request.intent.name === 'AddActorIntent' &&
+      request.intent.name === 'AddCardIntent' &&
       request.dialogState !== 'COMPLETED';
   },
   handle(handlerInput) {
@@ -35,28 +38,31 @@ const InProgressAddActorIntentHandler = {
   }
 }
 
-const AddActorIntentHandler = {
+const AddCardIntentHandler = {
   canHandle(handlerInput) {
     return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === 'AddActorIntent';
+      && handlerInput.requestEnvelope.request.intent.name === 'AddCardIntent';
   },
   async handle(handlerInput) {
     const {responseBuilder } = handlerInput;
     const userID = handlerInput.requestEnvelope.context.System.user.userId; 
     const slots = handlerInput.requestEnvelope.request.intent.slots;
-    const actorName = slots.ActorName.value;
-    const movieName = slots.MovieName.value;
-    return dbHelper.addActor(movieName, actorName, userID)
+    const card = slots.card.value;
+    const answer = slots.answer.value;
+    return dbHelper.addCard(answer, card, userID)
       .then((data) => {
-        const speechText = `You have added Actor ${actorName}. You can say add to add another one or remove to remove Actor`;
+        let speechText = `You have added ${card} as a card. You can say add to add another one or remove to remove a card`;
+        if(card == card) { 
+          speechText = `You already have ${card} as a card.`
+      }
         return responseBuilder
           .speak(speechText)
           .reprompt(GENERAL_REPROMPT)
           .getResponse();
       })
       .catch((err) => {
-        console.log("Error occured while saving Actor", err);
-        const speechText = "we cannot save your Actor right now. Try again!"
+        console.log("Error occured while saving your card", err);
+        const speechText = "we cannot save your card right now. Try again!"
         return responseBuilder
           .speak(speechText)
           .getResponse();
@@ -64,22 +70,24 @@ const AddActorIntentHandler = {
   },
 };
 
-const GetActorsIntentHandler = {
+const GetCardsIntentHandler = {
   canHandle(handlerInput) {
     return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === 'GetActorsIntent';
+      && handlerInput.requestEnvelope.request.intent.name === 'GetCardsIntent';
   },
   async handle(handlerInput) {
     const {responseBuilder } = handlerInput;
     const userID = handlerInput.requestEnvelope.context.System.user.userId; 
-    return dbHelper.getActors(userID)
+    return dbHelper.getCards(userID)
       .then((data) => {
-        var speechText = "Your Actors are "
+        var speechText = `You have a total of ${data.length} cards. The cards are: `
+        if(data.length == 1) {
+          speechText = `You only have ${data.length} card, which is `
+        }
         if (data.length == 0) {
-          speechText = "You do not have any favourite Actor yet, add Actor by saving add Actorname "
+          speechText = "You do not have any cards yet, add a card by saying add, followed by a topic or question."
         } else {
-          console.log('I hate you so much rn', data);
-          speechText += data.map(e => e.actorName).join(", ")
+          speechText += data.map(e => e.front).join(", ")
         }
         return responseBuilder
           .speak(speechText)
@@ -87,7 +95,7 @@ const GetActorsIntentHandler = {
           .getResponse();
       })
       .catch((err) => {
-        const speechText = "we cannot get your Actor right now. Try again!"
+        const speechText = "we cannot get your card right now. Try again!"
         return responseBuilder
           .speak(speechText)
           .getResponse();
@@ -95,11 +103,11 @@ const GetActorsIntentHandler = {
   }
 }
 
-const InProgressRemoveActorIntentHandler = {
+const InProgressRemoveCardIntentHandler = {
   canHandle(handlerInput) {
     const request = handlerInput.requestEnvelope.request;
     return request.type === 'IntentRequest' &&
-      request.intent.name === 'RemoveActorIntent' &&
+      request.intent.name === 'RemoveCardIntent' &&
       request.dialogState !== 'COMPLETED';
   },
   handle(handlerInput) {
@@ -110,28 +118,28 @@ const InProgressRemoveActorIntentHandler = {
   }
 }
 
-const RemoveActorIntentHandler = {
+const RemoveCardIntentHandler = {
   canHandle(handlerInput) {
     return handlerInput.requestEnvelope.request.type === 'IntentRequest'
-      && handlerInput.requestEnvelope.request.intent.name === 'RemoveActorIntent';
+      && handlerInput.requestEnvelope.request.intent.name === 'RemoveCardIntent';
   }, 
   handle(handlerInput) {
     const {responseBuilder } = handlerInput;
     const userID = handlerInput.requestEnvelope.context.System.user.userId; 
     const slots = handlerInput.requestEnvelope.request.intent.slots;
-    const actorName = slots.ActorName.value;
-    console.log('booooooooooooork', actorName);
-    return dbHelper.removeActor(actorName, userID)
+    const card = slots.card.value;
+    // const answer = slots.answer.value;
+    return dbHelper.removeCard(card, userID)
       .then((data) => {
-        const speechText = `You have removed Actor with name ${actorName}, you can add another one by saying add`
+        const speechText = `You have removed ${card}, you can add another one by saying add`
         return responseBuilder
           .speak(speechText)
           .reprompt(GENERAL_REPROMPT)
           .getResponse();
       })
       .catch((err) => {
-        console.log("Error occured while removing Actor", err);
-        const speechText = `You do not have Actor with name ${actorName}, you can add it by saying add`
+        console.log("Error occured while removing card", err);
+        const speechText = `You do not have that card, you can add it by saying add`
         return responseBuilder
           .speak(speechText)
           .reprompt(GENERAL_REPROMPT)
@@ -200,11 +208,11 @@ const skillBuilder = Alexa.SkillBuilders.standard();
 exports.handler = skillBuilder
   .addRequestHandlers(
     LaunchRequestHandler,
-    InProgressAddActorIntentHandler,
-    AddActorIntentHandler,
-    GetActorsIntentHandler,
-    InProgressRemoveActorIntentHandler,
-    RemoveActorIntentHandler,
+    InProgressAddCardIntentHandler,
+    AddCardIntentHandler,
+    GetCardsIntentHandler,
+    InProgressRemoveCardIntentHandler,
+    RemoveCardIntentHandler,
     HelpIntentHandler,
     CancelAndStopIntentHandler,
     SessionEndedRequestHandler

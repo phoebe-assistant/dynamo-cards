@@ -1,17 +1,17 @@
 var AWS = require("aws-sdk");
 AWS.config.update({region: "us-east-1"});
-const tableName = "cool-actor-database";
+const tableName = "flashytable"; //change to your Dynamodb table name
 
 var dbHelper = function () { };
 var docClient = new AWS.DynamoDB.DocumentClient();
 
-dbHelper.prototype.addActor = (movie, actor, userID) => {
+dbHelper.prototype.addCard = (answer, card, userID) => {
     return new Promise((resolve, reject) => {
         const params = {
             TableName: tableName,
             Item: {
-              'movieName' : movie,
-              'actorName' : actor,
+              'back' : answer,
+              'front' : card,
               'userId': userID
             }
         };
@@ -26,7 +26,7 @@ dbHelper.prototype.addActor = (movie, actor, userID) => {
     });
 }
 
-dbHelper.prototype.getActors = (userID) => {
+dbHelper.prototype.getCards = (userID) => {
     return new Promise((resolve, reject) => {
         const params = {
             TableName: tableName,
@@ -50,14 +50,14 @@ dbHelper.prototype.getActors = (userID) => {
     });
 }
 
-dbHelper.prototype.removeActor = (actor, userID) => {
+dbHelper.prototype.removeCard = (card, userID) => {
     return new Promise((resolve, reject) => {
         const params = {
             TableName: tableName,
             Key: {
-                "actorName": actor,
-                "userId": userID,
-            },
+                "front": card,
+                "userId": userID
+            }
         }
         docClient.delete(params, function (err, data) {
             if (err) {

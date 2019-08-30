@@ -1,7 +1,7 @@
 {
     "interactionModel": {
         "languageModel": {
-            "invocationName": "cool actor database",
+            "invocationName": "flashycard",
             "intents": [
                 {
                     "name": "AMAZON.CancelIntent",
@@ -16,48 +16,52 @@
                     "samples": []
                 },
                 {
-                    "name": "AddActorIntent",
+                    "name": "AddCardIntent",
                     "slots": [
                         {
-                            "name": "ActorName",
+                            "name": "card",
                             "type": "AMAZON.SearchQuery",
                             "samples": [
-                                "{ActorName}"
+                                "{card}"
                             ]
                         },
                         {
-                            "name": "MovieName",
+                            "name": "answer",
                             "type": "AMAZON.SearchQuery",
                             "samples": [
-                                "{MovieName}"
+                                "{answer}"
                             ]
                         }
                     ],
                     "samples": [
-                        "add {ActorName}",
+                        "add {card}",
+                        "add a {card}",
                         "add"
                     ]
                 },
                 {
-                    "name": "GetActorsIntent",
+                    "name": "GetCardsIntent",
                     "slots": [],
                     "samples": [
-                        "get my actors"
+                        "get my cards",
+                        "get my card",
+                        "get cards",
+                        "get card"
                     ]
                 },
                 {
-                    "name": "RemoveActorIntent",
+                    "name": "RemoveCardIntent",
                     "slots": [
                         {
-                            "name": "ActorName",
+                            "name": "card",
                             "type": "AMAZON.SearchQuery",
                             "samples": [
-                                "remove {ActorName}"
+                                "remove {card}"
                             ]
                         }
                     ],
                     "samples": [
-                        "remove {ActorName}",
+                        "remove {card}",
                         "remove"
                     ]
                 },
@@ -71,12 +75,12 @@
         "dialog": {
             "intents": [
                 {
-                    "name": "AddActorIntent",
+                    "name": "AddCardIntent",
                     "confirmationRequired": false,
                     "prompts": {},
                     "slots": [
                         {
-                            "name": "ActorName",
+                            "name": "card",
                             "type": "AMAZON.SearchQuery",
                             "confirmationRequired": false,
                             "elicitationRequired": true,
@@ -85,7 +89,7 @@
                             }
                         },
                         {
-                            "name": "MovieName",
+                            "name": "answer",
                             "type": "AMAZON.SearchQuery",
                             "confirmationRequired": false,
                             "elicitationRequired": true,
@@ -96,12 +100,12 @@
                     ]
                 },
                 {
-                    "name": "RemoveActorIntent",
+                    "name": "RemoveCardIntent",
                     "confirmationRequired": false,
                     "prompts": {},
                     "slots": [
                         {
-                            "name": "ActorName",
+                            "name": "card",
                             "type": "AMAZON.SearchQuery",
                             "confirmationRequired": true,
                             "elicitationRequired": true,
@@ -121,7 +125,7 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "Which actor would you like to add "
+                        "value": "Which card would you like to add "
                     }
                 ]
             },
@@ -130,7 +134,7 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "Which actor would you like to remove "
+                        "value": "Which card would you like to remove "
                     }
                 ]
             },
@@ -139,7 +143,7 @@
                 "variations": [
                     {
                         "type": "PlainText",
-                        "value": "what movie has {ActorName} been in"
+                        "value": "what will be the answer for {card}?"
                     }
                 ]
             },
