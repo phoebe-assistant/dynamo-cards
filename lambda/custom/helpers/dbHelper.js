@@ -1,16 +1,17 @@
 var AWS = require("aws-sdk");
 AWS.config.update({region: "us-east-1"});
-const tableName = "dynamodb-starter";
+const tableName = "cool-actor-database";
 
 var dbHelper = function () { };
 var docClient = new AWS.DynamoDB.DocumentClient();
 
-dbHelper.prototype.addMovie = (movie, userID) => {
+dbHelper.prototype.addActor = (movie, actor, userID) => {
     return new Promise((resolve, reject) => {
         const params = {
             TableName: tableName,
             Item: {
-              'movieTitle' : movie,
+              'movieName' : movie,
+              'actorName' : actor,
               'userId': userID
             }
         };
@@ -25,7 +26,7 @@ dbHelper.prototype.addMovie = (movie, userID) => {
     });
 }
 
-dbHelper.prototype.getMovies = (userID) => {
+dbHelper.prototype.getActors = (userID) => {
     return new Promise((resolve, reject) => {
         const params = {
             TableName: tableName,
@@ -34,7 +35,7 @@ dbHelper.prototype.getMovies = (userID) => {
                 "#userID": "userId"
             },
             ExpressionAttributeValues: {
-                ":user_id": userID
+                ":user_id": userID,
             }
         }
         docClient.query(params, (err, data) => {
@@ -49,15 +50,14 @@ dbHelper.prototype.getMovies = (userID) => {
     });
 }
 
-dbHelper.prototype.removeMovie = (movie, userID) => {
+dbHelper.prototype.removeActor = (actor, userID) => {
     return new Promise((resolve, reject) => {
         const params = {
             TableName: tableName,
             Key: {
+                "actorName": actor,
                 "userId": userID,
-                "movieTitle": movie
             },
-            ConditionExpression: "attribute_exists(movieTitle)"
         }
         docClient.delete(params, function (err, data) {
             if (err) {
